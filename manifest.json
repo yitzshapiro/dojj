@@ -1,0 +1,25 @@
+{
+    "manifest_version": 3,
+    "name": "Email to Monday.com Task",
+    "version": "1.0",
+    "permissions": [
+      "activeTab",
+      "storage",
+      "https://mail.google.com/",
+      "https://api.monday.com/"
+    ],
+    "background": {
+      "service_worker": "background.ts"
+    },
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": "icon.png"
+    },
+    "content_scripts": [
+      {
+        "matches": ["https://mail.google.com/*"],
+        "js": ["contentScript.js"]
+      }
+    ]
+  }
+  
