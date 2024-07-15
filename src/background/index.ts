@@ -15,24 +15,24 @@ interface EmailTaskData {
 interface ChatMessageParams {
     role: 'user' | 'system' | 'assistant';
     content: string;
-    tool_call_id?: string;  // Include other fields if necessary, optional for now
+    tool_call_id?: string;
 }
 
-// Function to create a compliant message object
 const createChatMessage = (params: ChatMessageParams): ChatCompletionMessageParam => {
+    console.log('Creating chat message:', params);
     return {
         role: params.role,
         content: params.content,
-        tool_call_id: params.tool_call_id  // This can be optional
+        tool_call_id: params.tool_call_id || undefined
     };
 };
 
-// Initialize WebLLM with the specified model
-const MODEL_ID = 'Phi-3-mini-4k-instruct-q4f16_1-MLC-1k';  // Adjust this as necessary
+const MODEL_ID = 'Phi-3-mini-4k-instruct-q4f16_1-MLC-1k';
 
 let engine: MLCEngineInterface;
 
 const initializeWebLLM = async () => {
+    console.log('Initializing the WebLLM engine with model ID:', MODEL_ID);
     try {
       engine = await CreateMLCEngine(MODEL_ID);
       console.log('Model loaded successfully');
@@ -41,8 +41,8 @@ const initializeWebLLM = async () => {
     }
 };
 
-// Parse the email content to extract tasks
 const parseEmailWithWebLLM = async (emailContent: string): Promise<Task[]> => {
+    console.log('Parsing email content with WebLLM');
     if (!engine) {
       await initializeWebLLM();
     }
@@ -60,8 +60,8 @@ const parseEmailWithWebLLM = async (emailContent: string): Promise<Task[]> => {
     }
 };
 
-// Extract tasks based on the model's response
 const extractTasksFromResponse = (response: any): Task[] => {
+    console.log('Extracting tasks from response:', response);
     if (!response || !response.tasks || !Array.isArray(response.tasks)) {
       console.error('Invalid response structure:', response);
       return [];
@@ -73,8 +73,8 @@ const extractTasksFromResponse = (response: any): Task[] => {
     }));
 };
 
-// Create a task on Monday.com
 const createTaskOnMonday = async (task: Task, apiKey: string, boardId: string) => {
+  console.log('Creating task on Monday.com:', task);
   const url = `https://api.monday.com/v2/boards/${boardId}/items`;
   const response = await fetch(url, {
     method: 'POST',
@@ -90,26 +90,32 @@ const createTaskOnMonday = async (task: Task, apiKey: string, boardId: string) =
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to create task: ${await response.text()}`);
+    const errorMessage = await response.text();
+    console.error('Failed to create task:', errorMessage);
+    throw new Error(`Failed to create task: ${errorMessage}`);
   }
 };
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('Received message from Chrome extension:', request);
   if (request.action === "requestEmailContent" && sender.tab && sender.tab.id) {
-    // Forward the message to the content script
     chrome.tabs.sendMessage(sender.tab.id, {action: "extractEmail"});
   } else if (request.email) {
     parseEmailWithWebLLM(request.email).then(tasks => {
       tasks.forEach(task => {
         createTaskOnMonday(task, request.apiKey, request.boardId)
           .then(() => sendResponse({status: 'success'}))
-          .catch(error => sendResponse({status: 'error', message: error.message}));
+          .catch(error => {
+            console.error('Error creating task on Monday:', error);
+            sendResponse({status: 'error', message: error.message});
+          });
       });
-    }).catch(error => sendResponse({status: 'error', message: error.message}));
-    return true; // Indicate that the response is asynchronous
+    }).catch(error => {
+      console.error('Error handling email:', error);
+      sendResponse({status: 'error', message: error.message});
+    });
+    return true; // Indicates that the response will be sent asynchronously
   }
 });
 
-
-// Initialize the engine at startup
 initializeWebLLM();
