@@ -4,22 +4,26 @@
     "version": "1.0",
     "permissions": [
       "activeTab",
-      "storage",
-      "https://mail.google.com/",
-      "https://api.monday.com/"
+      "storage"
+    ],
+    "host_permissions": [
+      "https://mail.google.com/*",
+      "https://api.monday.com/*"
     ],
     "background": {
-      "service_worker": "background.ts"
+      "service_worker": "dist/background.js"
     },
     "action": {
-      "default_popup": "popup.html",
-      "default_icon": "icon.png"
+      "default_popup": "src/popup/popup.html"
     },
     "content_scripts": [
-      {
-        "matches": ["https://mail.google.com/*"],
-        "js": ["contentScript.js"]
-      }
-    ]
-  }
-  
+        {
+            "matches": ["https://mail.google.com/*"],
+            "js": ["dist/contentScript.js"]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+   }
+
+}

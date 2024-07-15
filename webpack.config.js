@@ -3,9 +3,9 @@ const path = require('path');
 module.exports = {
   mode: 'development',
   entry: {
-    popup: './src/popup.ts',
-    background: './src/background.ts',
-    contentScript: './src/contentScript.ts'
+    popup: './src/popup/index.ts',
+    background: './src/background/index.ts',
+    contentScript: './src/content/index.ts'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -22,5 +22,6 @@ module.exports = {
   },
   resolve: {
     extensions: ['.ts', '.js']
-  }
+  },
+  devtool: 'cheap-module-source-map' // Change this line for different environments
 };
