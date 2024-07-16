@@ -32,14 +32,16 @@ const MODEL_ID = 'Phi-3-mini-4k-instruct-q4f16_1-MLC-1k';
 let engine: MLCEngineInterface;
 
 const initializeWebLLM = async () => {
+  console.log('Attempting to initialize WebLLM...');
   try {
       engine = await CreateMLCEngine(MODEL_ID);
       console.log('Model loaded successfully');
   } catch (error) {
+      console.log('Error during WebLLM initialization:', error);
       if (error instanceof DOMException) {
-          console.error('DOMException encountered:', error.message);
+          console.error('DOMException details:', error.name, error.message);
       } else {
-          console.error('Failed to initialize the WebLLM engine:', error);
+          console.error('Initialization failed:', error);
       }
   }
 };
@@ -56,6 +58,7 @@ const parseEmailWithWebLLM = async (emailContent: string): Promise<Task[]> => {
         max_tokens: 1024,
         temperature: 0.7
       });
+      console.log('Response from WebLLM:', response);
       return extractTasksFromResponse(response);
     } catch (error) {
       console.error('Error parsing email:', error);
@@ -79,23 +82,29 @@ const extractTasksFromResponse = (response: any): Task[] => {
 const createTaskOnMonday = async (task: Task, apiKey: string, boardId: string) => {
   console.log('Creating task on Monday.com:', task);
   const url = `https://api.monday.com/v2/boards/${boardId}/items`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      'name': task.name,
-      'due_date': task.dueDate,
-      'priority': task.priority
-    })
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        'name': task.name,
+        'due_date': task.dueDate,
+        'priority': task.priority
+      })
+    });
 
-  if (!response.ok) {
-    const errorMessage = await response.text();
-    console.error('Failed to create task:', errorMessage);
-    throw new Error(`Failed to create task: ${errorMessage}`);
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      console.error('Failed to create task:', errorMessage);
+      throw new Error(`Failed to create task: ${errorMessage}`);
+    }
+    console.log('Task created successfully on Monday.com');
+  } catch (error) {
+    console.error('Error during task creation on Monday.com:', error);
+    throw error;
   }
 };
 
