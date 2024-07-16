@@ -32,13 +32,16 @@ const MODEL_ID = 'Phi-3-mini-4k-instruct-q4f16_1-MLC-1k';
 let engine: MLCEngineInterface;
 
 const initializeWebLLM = async () => {
-    console.log('Initializing the WebLLM engine with model ID:', MODEL_ID);
-    try {
+  try {
       engine = await CreateMLCEngine(MODEL_ID);
       console.log('Model loaded successfully');
-    } catch (error) {
-      console.error('Failed to initialize the WebLLM engine:', error);
-    }
+  } catch (error) {
+      if (error instanceof DOMException) {
+          console.error('DOMException encountered:', error.message);
+      } else {
+          console.error('Failed to initialize the WebLLM engine:', error);
+      }
+  }
 };
 
 const parseEmailWithWebLLM = async (emailContent: string): Promise<Task[]> => {
