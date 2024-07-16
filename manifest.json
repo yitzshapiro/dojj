@@ -3,18 +3,20 @@
     "name": "Email to Monday.com Task",
     "version": "1.0",
     "permissions": [
-      "activeTab",
-      "storage"
+        "activeTab",
+        "storage"
     ],
     "host_permissions": [
-      "https://mail.google.com/*",
-      "https://api.monday.com/*"
+        "https://mail.google.com/*",
+        "https://api.monday.com/*",
+        "https://huggingface.co/*",
+        "https://raw.githubusercontent.com/*"
     ],
     "background": {
-      "service_worker": "dist/background.js"
+        "service_worker": "dist/background.js"
     },
     "action": {
-      "default_popup": "src/popup/popup.html"
+        "default_popup": "src/popup/popup.html"
     },
     "content_scripts": [
         {
@@ -23,7 +25,6 @@
         }
     ],
     "content_security_policy": {
-        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
-   }
-
+        "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://mail.google.com/ https://api.monday.com/ https://huggingface.co/ https://raw.githubusercontent.com/"
+    }
 }
